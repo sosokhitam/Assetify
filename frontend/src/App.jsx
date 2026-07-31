@@ -4,6 +4,8 @@ import { useAuth } from './context/useAuth.js';
 import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import MasterData from './pages/MasterData.jsx';
+import Aset from './pages/Aset.jsx';
+import Perbaikan from './pages/Perbaikan.jsx';
 import Layout from './components/Layout.jsx';
 
 const ProtectedRoute = ({ children }) => {
@@ -29,6 +31,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <MasterData />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/aset" 
+        element={
+          <ProtectedRoute>
+            <Aset />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/perbaikan" 
+        element={
+          <ProtectedRoute>
+            <Perbaikan />
           </ProtectedRoute>
         } 
       />

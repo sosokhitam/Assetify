@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import API from '../api.js';
+import API from '../services/api.js';
 
 export default function MasterData() {
   const [lokasiList, setLokasiList] = useState([]);
