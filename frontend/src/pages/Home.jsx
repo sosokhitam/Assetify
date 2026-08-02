@@ -13,6 +13,7 @@ export default function Home() {
   const { token, user, loginWithNip } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect otomatis jika pengguna sudah memiliki sesi aktif
   if (token && user) {
     if (user.role === 'admin' || user.role === 'teknisi') {
       return <Navigate to="/dashboard" replace />;
@@ -20,7 +21,7 @@ export default function Home() {
     return <Navigate to="/pegawai/dashboard" replace />;
   }
 
-  // Handler Process Login via NIP
+  // Handler Proses Login Pegawai via NIP
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -29,6 +30,7 @@ export default function Home() {
     try {
       const userData = await loginWithNip(nip, password);
 
+      // Routing sesuai role yang dikembalikan
       if (userData.role === 'admin' || userData.role === 'teknisi') {
         navigate('/dashboard');
       } else {
@@ -57,10 +59,10 @@ export default function Home() {
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20 active:scale-95"
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/20 active:scale-95 cursor-pointer"
         >
           <Lock className="w-4 h-4" />
-          Login Sistem
+          Login Pegawai
         </button>
       </nav>
 
@@ -81,7 +83,7 @@ export default function Home() {
         <div className="mt-10 flex flex-wrap gap-4 justify-center">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-7 py-3.5 rounded-xl transition shadow-xl shadow-indigo-500/25 text-base active:scale-95"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-7 py-3.5 rounded-xl transition shadow-xl shadow-indigo-500/25 text-base active:scale-95 cursor-pointer"
           >
             Masuk Portal Pegawai <ArrowRight className="w-5 h-5" />
           </button>
@@ -114,7 +116,7 @@ export default function Home() {
         &copy; {new Date().getFullYear()} Assetify IT Service Desk. All rights reserved.
       </footer>
 
-      {/* MODAL LOGIN */}
+      {/* MODAL LOGIN PEGAWAI */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
           <div className="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 md:p-8 shadow-2xl relative">
@@ -122,7 +124,7 @@ export default function Home() {
             {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition"
+              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-700 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -131,7 +133,7 @@ export default function Home() {
               <div className="inline-flex p-3 bg-indigo-600/20 text-indigo-400 rounded-2xl mb-3 border border-indigo-500/30">
                 <Lock className="w-6 h-6" />
               </div>
-              <h2 className="text-2xl font-bold text-white">Login Portal Assetify</h2>
+              <h2 className="text-2xl font-bold text-white">Login Portal Pegawai</h2>
               <p className="text-sm text-slate-400 mt-1">Masukkan NIP dan Password akun Anda</p>
             </div>
 
@@ -175,12 +177,12 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm mt-2 flex justify-center items-center gap-2"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-800 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm mt-2 flex justify-center items-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 ) : (
-                  'Masuk ke Sistem'
+                  'Masuk ke Portal Pegawai'
                 )}
               </button>
             </form>
@@ -192,7 +194,7 @@ export default function Home() {
                 Belum punya akun / Lupa password?
               </p>
               <p className="text-xs text-slate-500 mt-1">
-                Hubungi **Divisi IT Center** untuk pendaftaran & pembuatan kredensial NIP Anda.
+                Hubungi <strong className="text-slate-300">Divisi IT Center</strong> untuk pendaftaran & pembuatan kredensial NIP Anda.
               </p>
             </div>
 

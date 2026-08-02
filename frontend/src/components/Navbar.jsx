@@ -1,29 +1,50 @@
-import { useAuth } from '../context/useAuth.js';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 
-export default function Navbar() {
-  const { user, logoutContext } = useAuth();
+const Navbar = () => {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const isPegawai = user.role === 'pegawai';
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate('/login');
+  };
 
   return (
-    <header className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center">
+    <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+      {/* JUDUL APAPUN HALAMANNYA */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-800">Sistem Manajemen Aset IT</h2>
+        <h1 className="text-lg font-bold text-slate-800">
+          Sistem Manajemen Aset IT
+        </h1>
+        <p className="text-xs text-slate-500">
+          SAMSAT IT Management Portal
+        </p>
       </div>
 
-      <div className="flex items-center space-x-4">
-        <div className="text-right">
-          <p className="text-sm font-medium text-slate-800">{user?.nama_lengkap || user?.email}</p>
-          <span className="inline-block px-2 py-0.5 text-xs font-semibold uppercase text-blue-700 bg-blue-100 rounded-full">
-            {user?.role}
-          </span>
-        </div>
+      {/* PEGAWAI INFO & TOMBOL KELUAR */}
+      <div className="flex items-center gap-3">
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wider uppercase ${
+            isPegawai
+              ? 'bg-blue-100 text-blue-600 border border-blue-200'
+              : 'bg-purple-100 text-purple-600 border border-purple-200'
+          }`}
+        >
+          {user.role || 'PEGAWAI'}
+        </span>
 
         <button
-          onClick={logoutContext}
-          className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 border border-red-200 rounded-lg transition duration-150"
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 border border-red-200 text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-medium transition"
         >
-          Keluar
+          <LogOut size={14} /> Keluar
         </button>
       </div>
     </header>
   );
-}
+};
+
+export default Navbar;

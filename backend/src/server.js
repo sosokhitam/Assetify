@@ -7,7 +7,8 @@ import asetRoutes from './routes/asetRoutes.js';
 import perbaikanRoutes from './routes/perbaikanRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import lokasiRoutes from './routes/lokasiRoutes.js';
-import userRoutes from './routes/userRoutes.js'; // 1. Tambahkan import userRoutes
+import userRoutes from './routes/userRoutes.js';
+import pegawaiRoutes from './routes/pegawaiRoutes.js'; // 1. Tambahkan import pegawaiRoutes
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/perbaikan', perbaikanRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/lokasi', lokasiRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/pegawai', pegawaiRoutes); // 2. Daftarkan endpoint khusus pegawai
 
 // Endpoint Uji Coba (Ping)
 app.get('/', (req, res) => {

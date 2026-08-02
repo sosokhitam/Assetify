@@ -2,14 +2,18 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext.jsx';
 import { useAuth } from './context/useAuth.js';
 
-// Import Halaman
+// Import Halaman Admin & General
 import Home from './pages/Home.jsx';
 import AdminLogin from './pages/AdminLogin.jsx'; // Halaman Khusus Login Admin
 import Dashboard from './pages/Dashboard.jsx';
 import MasterData from './pages/MasterData.jsx';
 import Aset from './pages/Aset.jsx';
 import Perbaikan from './pages/Perbaikan.jsx';
-import PegawaiDashboard from './pages/PegawaiDashboard.jsx'; // Halaman khusus pegawai biasa
+
+// Import Halaman Pegawai
+import PegawaiDashboard from './pages/PegawaiDashboard.jsx'; 
+import PegawaiAset from './pages/PegawaiAset.jsx'; // Halaman Data Aset Pegawai
+
 import Layout from './components/Layout.jsx';
 
 // Protected Route yang Aman & Mencegah Race Condition Sync State
@@ -79,6 +83,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={['pegawai']}>
             <PegawaiDashboard />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/pegawai/aset" 
+        element={
+          <ProtectedRoute allowedRoles={['pegawai']}>
+            <PegawaiAset />
           </ProtectedRoute>
         } 
       />
