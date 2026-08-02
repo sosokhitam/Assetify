@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { useAuth } from './context/useAuth.js';
@@ -14,17 +13,19 @@ import PegawaiDashboard from './pages/PegawaiDashboard.jsx'; // Halaman khusus p
 import Layout from './components/Layout.jsx';
 
 // Protected Route yang Aman & Mencegah Race Condition Sync State
-const ProtectedRoute = ({ children }) => {
-  const { token } = useAuth();
-  
-  // Ambil token dari React State ATAU langsung dari localStorage jika state belum selesai re-render
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { token, user } = useAuth();
   const savedToken = token || localStorage.getItem('token');
-  
-  // Jika benar-benar tidak ada token, barulah arahkan kembali ke Halaman Utama
+  const savedUser = user || JSON.parse(localStorage.getItem('user') || 'null');
+
   if (!savedToken) {
     return <Navigate to="/" replace />;
   }
-  
+
+  if (allowedRoles && (!savedUser || !allowedRoles.includes(savedUser.role))) {
+    return <Navigate to="/" replace />;
+  }
+
   return <Layout>{children}</Layout>;
 };
 
@@ -42,7 +43,7 @@ function AppRoutes() {
       <Route 
         path="/dashboard" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin', 'teknisi']}>
             <Dashboard />
           </ProtectedRoute>
         } 
@@ -50,7 +51,7 @@ function AppRoutes() {
       <Route 
         path="/master" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin']}>
             <MasterData />
           </ProtectedRoute>
         } 
@@ -58,7 +59,7 @@ function AppRoutes() {
       <Route 
         path="/aset" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin', 'teknisi']}>
             <Aset />
           </ProtectedRoute>
         } 
@@ -66,7 +67,7 @@ function AppRoutes() {
       <Route 
         path="/perbaikan" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['admin', 'teknisi']}>
             <Perbaikan />
           </ProtectedRoute>
         } 
@@ -76,7 +77,7 @@ function AppRoutes() {
       <Route 
         path="/pegawai/dashboard" 
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['pegawai']}>
             <PegawaiDashboard />
           </ProtectedRoute>
         } 

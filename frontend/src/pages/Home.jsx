@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import API from '../services/api';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 import { Shield, KeyRound, Lock, UserCheck, HelpCircle, AlertCircle, ArrowRight, X } from 'lucide-react';
 
 export default function Home() {
@@ -10,40 +10,36 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  const { token, user, loginWithNip } = useAuth();
   const navigate = useNavigate();
+
+  if (token && user) {
+    if (user.role === 'admin' || user.role === 'teknisi') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/pegawai/dashboard" replace />;
+  }
 
   // Handler Process Login via NIP
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setErrorMessage('');
+    e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
 
-  try {
-    // Memanggil API backend login kamu
-    const res = await API.post('/auth/login', { nip, password });
+    try {
+      const userData = await loginWithNip(nip, password);
 
-    if (res.data?.token) {
-      // Simpan token/user (sesuaikan dengan mekanisme AuthContext kamu)
-      localStorage.setItem('token', res.data.token);
-      
-      const role = res.data?.user?.role || 'pegawai';
-
-      if (role === 'admin' || role === 'teknisi') {
+      if (userData.role === 'admin' || userData.role === 'teknisi') {
         navigate('/dashboard');
       } else {
         navigate('/pegawai/dashboard');
       }
-
-      window.location.reload(); // Refresh state auth jika diperlukan
+    } catch (err) {
+      setErrorMessage(err.message || 'Gagal masuk. Periksa kembali NIP dan Password Anda.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setErrorMessage(
-      err.response?.data?.message || 'Gagal masuk. Periksa kembali NIP dan Password Anda.'
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between selection:bg-indigo-500 selection:text-white">

@@ -7,6 +7,7 @@ import asetRoutes from './routes/asetRoutes.js';
 import perbaikanRoutes from './routes/perbaikanRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import lokasiRoutes from './routes/lokasiRoutes.js';
+import userRoutes from './routes/userRoutes.js'; // 1. Tambahkan import userRoutes
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/api/aset', asetRoutes);
 app.use('/api/perbaikan', perbaikanRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/lokasi', lokasiRoutes);
+app.use('/api/users', userRoutes);
 
 // Endpoint Uji Coba (Ping)
 app.get('/', (req, res) => {

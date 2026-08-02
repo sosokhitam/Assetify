@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { Shield, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Shield, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -10,7 +10,14 @@ export default function AdminLogin() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const navigate = useNavigate();
-  const { loginAdmin } = useAuth(); // Menggunakan fungsi loginAdmin dari AuthContext
+  const { token, user, loginAdmin } = useAuth(); // Menggunakan fungsi loginAdmin dari AuthContext
+
+  if (token && user) {
+    if (user.role === 'admin' || user.role === 'teknisi') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Navigate to="/pegawai/dashboard" replace />;
+  }
 
   const handleAdminLogin = async (e) => {
     e.preventDefault();
