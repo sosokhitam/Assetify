@@ -1,8 +1,9 @@
 import express from 'express';
-import { login } from '../controllers/authController.js';
+import { loginPegawai, loginAdmin } from '../controllers/authController.js';
 
 const router = express.Router();
 
-router.post('/login', login);
+router.post('/login', loginPegawai);       // Endpoint login pegawai via NIP
+router.post('/admin/login', loginAdmin);   // Endpoint login admin via Email
 
 export default router;

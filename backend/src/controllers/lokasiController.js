@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase.js';
 
 // Get All Lokasi
-export const getAllLokasi = async (req, res) => {
+export const getLokasi = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('lokasi')
@@ -15,6 +15,9 @@ export const getAllLokasi = async (req, res) => {
   }
 };
 
+// Ekspor juga sebagai getAllLokasi agar kompatibel dengan masterRoutes.js
+export const getAllLokasi = getLokasi;
+
 // Create Lokasi
 export const createLokasi = async (req, res) => {
   const { nama_lokasi, gedung_lantai, keterangan } = req.body;
@@ -25,7 +28,11 @@ export const createLokasi = async (req, res) => {
       .select();
 
     if (error) throw error;
-    return res.status(201).json({ success: true, message: 'Lokasi berhasil ditambahkan', data: data[0] });
+    return res.status(201).json({ 
+      success: true, 
+      message: 'Lokasi berhasil ditambahkan', 
+      data: data[0] 
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }

@@ -5,8 +5,11 @@ export default function Sidebar() {
   const location = useLocation();
   const { user } = useAuth();
 
+  // Tentukan path Dashboard sesuai Role
+  const dashboardPath = user?.role === 'pegawai' ? '/pegawai/dashboard' : '/dashboard';
+
   const menuItems = [
-    { name: 'Dashboard', path: '/', roles: ['admin', 'teknisi', 'pegawai'] },
+    { name: 'Dashboard', path: dashboardPath, roles: ['admin', 'teknisi', 'pegawai'] },
     { name: 'Data Aset IT', path: '/aset', roles: ['admin', 'teknisi', 'pegawai'] },
     { name: 'Master Lokasi & Kategori', path: '/master', roles: ['admin'] },
     { name: 'Pengajuan Perbaikan', path: '/perbaikan', roles: ['admin', 'teknisi', 'pegawai'] },

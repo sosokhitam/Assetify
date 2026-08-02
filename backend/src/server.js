@@ -5,6 +5,8 @@ import authRoutes from './routes/authRoutes.js';
 import masterRoutes from './routes/masterRoutes.js';
 import asetRoutes from './routes/asetRoutes.js';
 import perbaikanRoutes from './routes/perbaikanRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import lokasiRoutes from './routes/lokasiRoutes.js';
 
 dotenv.config();
 
@@ -19,6 +21,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/master', masterRoutes);
 app.use('/api/aset', asetRoutes);
 app.use('/api/perbaikan', perbaikanRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/lokasi', lokasiRoutes);
 
 // Endpoint Uji Coba (Ping)
 app.get('/', (req, res) => {
