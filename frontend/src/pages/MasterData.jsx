@@ -302,14 +302,14 @@ export default function MasterData() {
   return (
     <div className="space-y-6">
       {/* HEADER & NAV TAB */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold text-white">Master Data Reference</h1>
-          <p className="text-sm text-slate-400 mt-1">Kelola Pengguna/Pegawai, Lokasi Ruangan, dan Kategori Aset IT</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Master Data Reference</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">Kelola Pengguna/Pegawai, Lokasi Ruangan, dan Kategori Aset IT</p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="w-full sm:w-auto overflow-x-auto rounded-xl"><div className="flex min-w-max bg-slate-950 p-1 rounded-xl border border-slate-800">
           <button
             onClick={() => setActiveTab('pegawai')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
@@ -334,7 +334,7 @@ export default function MasterData() {
           >
             <Tag className="w-4 h-4" /> Kategori Aset
           </button>
-        </div>
+        </div></div>
       </div>
 
       {/* ALERT NOTIFIKASI */}
@@ -479,7 +479,7 @@ export default function MasterData() {
               </div>
 
               {/* 5. Jabatan & 6. Hak Akses */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-slate-300 mb-1 font-medium">
                     Jabatan <span className="text-rose-400">*</span>
@@ -533,8 +533,8 @@ export default function MasterData() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
+            <div className="overflow-x-auto rounded-xl">
+              <table className="min-w-[700px] w-full text-left text-sm text-slate-300">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
                   <tr>
                     <th className="px-4 py-3 rounded-l-lg">Pegawai</th>
@@ -677,8 +677,8 @@ export default function MasterData() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
+            <div className="overflow-x-auto rounded-xl">
+              <table className="min-w-[700px] w-full text-left text-sm text-slate-300">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
                   <tr>
                     <th className="px-4 py-3 rounded-l-lg">Nama Lokasi / Ruangan</th>
@@ -789,8 +789,8 @@ export default function MasterData() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-300">
+            <div className="overflow-x-auto rounded-xl">
+              <table className="min-w-[700px] w-full text-left text-sm text-slate-300">
                 <thead className="bg-slate-950 text-slate-400 uppercase text-xs">
                   <tr>
                     <th className="px-4 py-3 rounded-l-lg">Nama Kategori</th>

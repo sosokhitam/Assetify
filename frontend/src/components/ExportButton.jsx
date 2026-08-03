@@ -1,7 +1,7 @@
 import React from 'react';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // Direct import untuk kompatibilitas ESM/Vite
+import autoTable from 'jspdf-autotable';
 import { FileText, FileSpreadsheet } from 'lucide-react';
 
 export default function ExportButton({ data, filename, title }) {
@@ -12,9 +12,7 @@ export default function ExportButton({ data, filename, title }) {
       return;
     }
 
-    // Ubah data mentah agar bersih saat masuk excel
     const cleanData = data.map((item, index) => {
-      // Jika data sudah memiliki property 'No', gunakan itu; jika belum, buat otomatis
       if ('No' in item) {
         return item;
       }
@@ -46,42 +44,41 @@ export default function ExportButton({ data, filename, title }) {
     doc.setTextColor(100);
     doc.text(`Dicetak pada: ${new Date().toLocaleString('id-ID')}`, 14, 26);
 
-    // Ambil kunci object pertama sebagai header tabel secara otomatis
-    // Filter field internal/ID jika ada
     const keys = Object.keys(data[0]).filter(k => k !== 'id' && k !== 'created_at');
     const headers = keys.map(k => k.toUpperCase().replace(/_/g, ' '));
-    
     const rows = data.map(item => keys.map(key => item[key] ?? '-'));
 
-    // Memanggil autoTable secara eksplisit dengan mengoper instance 'doc'
     autoTable(doc, {
       head: [headers],
       body: rows,
       startY: 32,
       styles: { fontSize: 8 },
-      headStyles: { fillColor: [79, 70, 229] } // Warna Indigo Tailwind
+      headStyles: { fillColor: [79, 70, 229] }
     });
 
     doc.save(`${filename}_${Date.now()}.pdf`);
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full sm:w-auto">
+      {/* Tombol Excel */}
       <button
         onClick={exportToExcel}
-        className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-semibold transition shadow-md active:scale-95 cursor-pointer"
         title="Download Excel"
       >
-        <FileSpreadsheet className="w-4 h-4" />
-        Excel
+        <FileSpreadsheet className="w-4 h-4 shrink-0" />
+        <span>Excel</span>
       </button>
+
+      {/* Tombol PDF */}
       <button
         onClick={exportToPDF}
-        className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow-sm"
+        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-semibold transition shadow-md active:scale-95 cursor-pointer"
         title="Download PDF"
       >
-        <FileText className="w-4 h-4" />
-        PDF
+        <FileText className="w-4 h-4 shrink-0" />
+        <span>PDF</span>
       </button>
     </div>
   );
