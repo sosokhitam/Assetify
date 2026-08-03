@@ -1,5 +1,34 @@
 import { supabase } from '../config/supabase.js';
 
+const buildAsetPayload = (body = {}) => {
+  const payload = {};
+  const allowedFields = [
+    'kode_aset',
+    'nama_aset',
+    'lokasi_id',
+    'merk_model',
+    'nomor_seri',
+    'kondisi',
+    'status',
+    'user_id'
+  ];
+
+  allowedFields.forEach((field) => {
+    if (body[field] !== undefined && body[field] !== null && body[field] !== '') {
+      payload[field] = body[field];
+    }
+  });
+
+  if (body.kategori_id !== undefined && body.kategori_id !== null && body.kategori_id !== '') {
+    payload.kategori_id = body.kategori_id;
+  }
+
+  if (!payload.status) payload.status = 'Aktif';
+  if (!payload.kondisi) payload.kondisi = 'Baik';
+
+  return payload;
+};
+
 // Get All Aset (Lengkap dengan data Nama Kategori & Nama Lokasi)
 export const getAllAset = async (req, res) => {
   try {
@@ -21,32 +50,12 @@ export const getAllAset = async (req, res) => {
 
 // Create Aset Baru
 export const createAset = async (req, res) => {
-  const { 
-    kode_aset, 
-    nama_aset, 
-    kategori_id, 
-    lokasi_id, 
-    merk_model, 
-    nomor_seri, 
-    tanggal_pengadaan, 
-    kondisi, 
-    status 
-  } = req.body;
+  const payload = buildAsetPayload(req.body);
 
   try {
     const { data, error } = await supabase
       .from('aset')
-      .insert([{
-        kode_aset,
-        nama_aset,
-        kategori_id: kategori_id || null,
-        lokasi_id: lokasi_id || null,
-        merk_model,
-        nomor_seri,
-        tanggal_pengadaan: tanggal_pengadaan || null,
-        kondisi: kondisi || 'Baik',
-        status: status || 'Aktif'
-      }])
+      .insert([payload])
       .select();
 
     if (error) throw error;
@@ -59,7 +68,7 @@ export const createAset = async (req, res) => {
 // Update Aset
 export const updateAset = async (req, res) => {
   const { id } = req.params;
-  const updateData = req.body;
+  const updateData = buildAsetPayload(req.body);
 
   try {
     const { data, error } = await supabase

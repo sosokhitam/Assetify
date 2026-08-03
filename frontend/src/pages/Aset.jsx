@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import API from '../services/api';
 import ExportButton from '../components/ExportButton';
 import { 
@@ -9,12 +9,27 @@ import {
   Trash2, 
   Filter, 
   X,
-  RotateCcw
+  RotateCcw,
+  UserCog
 } from 'lucide-react';
+
+const getStoredUser = () => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const rawUser = localStorage.getItem('user');
+    return rawUser ? JSON.parse(rawUser) : {};
+  } catch (error) {
+    console.warn('Gagal membaca data user dari localStorage:', error);
+    return {};
+  }
+};
 
 export default function Aset() {
   const [asetList, setAsetList] = useState([]);
   const [lokasiList, setLokasiList] = useState([]);
+  const [kategoriList, setKategoriList] = useState([]);
+  const [userList, setUserList] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // State Filter & Search
@@ -29,13 +44,13 @@ export default function Aset() {
   const [formData, setFormData] = useState({
     kode_aset: '',
     nama_aset: '',
-    kategori: 'Laptop/PC',
+    kategori_id: '',
     merk_model: '',
     nomor_seri: '',
     lokasi_id: '',
+    user_id: '',
     kondisi: 'Baik',
     status: 'Aktif',
-    tahun_pembelian: new Date().getFullYear(),
   });
 
   // Helper string safe getters
@@ -78,9 +93,32 @@ export default function Aset() {
     }
   };
 
+  const fetchKategori = async () => {
+    try {
+      const res = await API.get('/master/kategori');
+      setKategoriList(res.data.data || []);
+    } catch (err) {
+      console.warn('Gagal mengambil daftar kategori:', err.message);
+      setKategoriList([]);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await API.get('/users');
+      setUserList(res.data.data || []);
+    } catch (err) {
+      console.warn('Gagal mengambil daftar pengguna:', err.message);
+      setUserList([]);
+    }
+  };
+
   useEffect(() => {
-    fetchAset();
-    fetchLokasi();
+    const loadData = async () => {
+      await Promise.all([fetchAset(), fetchLokasi(), fetchKategori(), fetchUsers()]);
+    };
+
+    loadData();
   }, []);
 
   // Reset Filter
@@ -102,13 +140,13 @@ export default function Aset() {
     setFormData({
       kode_aset: '',
       nama_aset: '',
-      kategori: 'Laptop/PC',
+      kategori_id: kategoriList[0]?.id || '',
       merk_model: '',
       nomor_seri: '',
       lokasi_id: lokasiList[0]?.id || '',
+      user_id: '',
       kondisi: 'Baik',
       status: 'Aktif',
-      tahun_pembelian: new Date().getFullYear(),
     });
     setShowModal(true);
   };
@@ -120,13 +158,13 @@ export default function Aset() {
     setFormData({
       kode_aset: item.kode_aset || '',
       nama_aset: item.nama_aset || '',
-      kategori: getKategoriName(item.kategori) !== '-' ? getKategoriName(item.kategori) : 'Laptop/PC',
+      kategori_id: item.kategori_id || item.kategori?.id || '',
       merk_model: item.merk_model || '',
       nomor_seri: item.nomor_seri || '',
       lokasi_id: item.lokasi_id || item.lokasi?.id || '',
+      user_id: item.user_id || '',
       kondisi: item.kondisi || 'Baik',
       status: item.status || 'Aktif',
-      tahun_pembelian: item.tahun_pembelian || new Date().getFullYear(),
     });
     setShowModal(true);
   };
@@ -186,9 +224,10 @@ export default function Aset() {
     Merk_Model: item.merk_model || '-',
     Nomor_Seri: item.nomor_seri || '-',
     Lokasi: getLokasiName(item.lokasi),
+    Pemilik: userList.find((u) => u.id === item.user_id)?.nama_lengkap || 'Belum Ditetapkan',
     Status: item.status,
     Kondisi: item.kondisi,
-    Tahun_Beli: item.tahun_pembelian || '-'
+    Catatan: '-'
   }));
 
   return (
@@ -299,6 +338,7 @@ export default function Aset() {
                 <th className="p-4">Nama Aset</th>
                 <th className="p-4">Kategori</th>
                 <th className="p-4">Lokasi</th>
+                <th className="p-4">Pemilik</th>
                 <th className="p-4">Kondisi</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-center">Aksi</th>
@@ -307,7 +347,7 @@ export default function Aset() {
             <tbody className="divide-y divide-slate-800/60 text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="p-12 text-center text-slate-500">
+                  <td colSpan="8" className="p-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                       <span>Memuat data aset...</span>
@@ -316,7 +356,7 @@ export default function Aset() {
                 </tr>
               ) : filteredAset.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-12 text-center text-slate-500">
+                  <td colSpan="8" className="p-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Laptop className="w-8 h-8 text-slate-600 stroke-[1.5]" />
                       <span>Tidak ada data aset yang ditemukan.</span>
@@ -346,6 +386,11 @@ export default function Aset() {
                     {/* Lokasi */}
                     <td className="p-4 text-slate-400">
                       {getLokasiName(item.lokasi)}
+                    </td>
+
+                    {/* Pemilik */}
+                    <td className="p-4 text-slate-400">
+                      {item.user_id ? (userList.find((u) => u.id === item.user_id)?.nama_lengkap || 'Pegawai') : 'Belum Ditetapkan'}
                     </td>
 
                     {/* Kondisi */}
@@ -457,16 +502,17 @@ export default function Aset() {
                 <div>
                   <label className="block text-slate-300 font-medium mb-1.5">Kategori *</label>
                   <select
-                    name="kategori"
-                    value={formData.kategori}
+                    name="kategori_id"
+                    value={formData.kategori_id}
                     onChange={handleChange}
                     className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 transition"
                   >
-                    <option value="Laptop/PC">Laptop/PC</option>
-                    <option value="Printer/Scanner">Printer/Scanner</option>
-                    <option value="Jaringan (Router/Switch)">Jaringan (Router/Switch)</option>
-                    <option value="Server/Storage">Server/Storage</option>
-                    <option value="Aksesoris/Lainnya">Aksesoris/Lainnya</option>
+                    <option value="">-- Pilih Kategori --</option>
+                    {kategoriList.map((kat) => (
+                      <option key={kat.id} value={kat.id}>
+                        {kat.nama_kategori}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -514,6 +560,24 @@ export default function Aset() {
                   </select>
                 </div>
 
+                {/* Pemilik */}
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1.5">Penetapan Pemilik</label>
+                  <select
+                    name="user_id"
+                    value={formData.user_id}
+                    onChange={handleChange}
+                    className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 transition"
+                  >
+                    <option value="">-- Belum Ditetapkan --</option>
+                    {userList.filter((user) => user.role === 'pegawai').map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.nama_lengkap || user.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Kondisi */}
                 <div>
                   <label className="block text-slate-300 font-medium mb-1.5">Kondisi</label>
@@ -544,17 +608,18 @@ export default function Aset() {
                   </select>
                 </div>
 
-                {/* Tahun Pembelian */}
+                {/* Informasi Tambahan */}
                 <div className="sm:col-span-2">
-                  <label className="block text-slate-300 font-medium mb-1.5">Tahun Pembelian</label>
-                  <input
-                    type="number"
-                    name="tahun_pembelian"
-                    value={formData.tahun_pembelian}
-                    onChange={handleChange}
-                    className="w-full bg-[#0f172a] border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-200 focus:outline-none focus:border-indigo-500 transition"
-                  />
+                  <label className="block text-slate-300 font-medium mb-1.5">Informasi Tambahan</label>
+                  <div className="rounded-xl border border-slate-700 bg-[#0f172a] px-3.5 py-3 text-[11px] text-slate-400">
+                    Data tambahan seperti tahun pembelian dapat disesuaikan di backend sesuai struktur tabel aset yang Anda gunakan.
+                  </div>
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/10 p-3 text-[11px] text-indigo-200 flex items-start gap-2">
+                <UserCog size={14} className="mt-0.5 shrink-0" />
+                <span>Admin dapat menetapkan pemilik aset di sini, lalu aset tersebut akan tampil otomatis di halaman pengguna yang bersangkutan.</span>
               </div>
 
               {/* Modal Footer */}

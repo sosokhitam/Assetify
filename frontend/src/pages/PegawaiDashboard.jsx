@@ -1,5 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import API from '../services/api';
 import { Laptop, Wrench, Clock, CheckCircle, PlusCircle } from 'lucide-react';
+
+const getStoredUser = () => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const rawUser = localStorage.getItem('user');
+    return rawUser ? JSON.parse(rawUser) : {};
+  } catch (error) {
+    console.warn('Gagal membaca data user dari localStorage:', error);
+    return {};
+  }
+};
 
 const PegawaiDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -14,52 +27,67 @@ const PegawaiDashboard = () => {
   const [formData, setFormData] = useState({ aset_id: '', deskripsi_kerusakan: '', tingkat_urgensi: 'sedang' });
   const [submitting, setSubmitting] = useState(false);
 
-  // Ambil Data User dari LocalStorage
-  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const user = useMemo(() => getStoredUser(), []);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchDashboardData();
-    } else {
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.id) {
       setLoading(false);
+      return;
     }
-  }, []);
 
-  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/pegawai/dashboard/${user.id}`);
-      const result = await response.json();
-      if (result.success) {
-        setData(result.data);
+      const response = await API.get(`/pegawai/dashboard/${user.id}`);
+      if (response.data?.success) {
+        setData(response.data.data);
       }
     } catch (err) {
-      console.error("Gagal mengambil data pegawai:", err);
+      console.error('Gagal mengambil data pegawai:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      if (!user?.id) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      if (!cancelled) setLoading(true);
+      await fetchDashboardData();
+      if (!cancelled) setLoading(false);
+    };
+
+    loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchDashboardData, user?.id]);
 
   const handleSubmitPengajuan = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/pegawai/pengajuan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, user_id: user.id })
+      const response = await API.post('/pegawai/pengajuan', {
+        aset_id: formData.aset_id,
+        deskripsi_kerusakan: formData.deskripsi_kerusakan,
+        tingkat_urgensi: formData.tingkat_urgensi
       });
-      const result = await response.json();
-      if (result.success) {
-        alert('Pengajuan perbaikan berhasil dikirim!');
+      if (response.data?.success) {
+        alert('Pengaduan aset berhasil dikirim dan akan segera diproses oleh admin.');
         setShowModal(false);
         setFormData({ aset_id: '', deskripsi_kerusakan: '', tingkat_urgensi: 'sedang' });
-        fetchDashboardData(); // Refresh data setelah berhasil kirim
+        fetchDashboardData();
       } else {
-        alert(result.message);
+        alert(response.data?.message || 'Gagal mengirim pengaduan.');
       }
     } catch (err) {
-      alert('Terjadi kesalahan koneksi ke server.');
+      alert(err.response?.data?.message || 'Terjadi kesalahan koneksi ke server.');
     } finally {
       setSubmitting(false);
     }
@@ -276,9 +304,9 @@ const PegawaiDashboard = () => {
                   value={formData.tingkat_urgensi}
                   onChange={e => setFormData({ ...formData, tingkat_urgensi: e.target.value })}
                   className="w-full bg-[#0f172a] border border-slate-700 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
-                  <option value="rendah">Rendah (Masih bisa dipakai)</option>
-                  <option value="sedang">Sedang (Mengganggu pekerjaan)</option>
-                  <option value="tinggi">Tinggi (Aset mati total / Urgent)</option>
+                  <option value="Rendah">Rendah</option>
+                  <option value="Sedang">Sedang</option>
+                  <option value="Tinggi">Tinggi</option>
                 </select>
               </div>
 

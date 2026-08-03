@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import API from '../services/api';
 import { 
   Laptop, 
@@ -8,12 +8,20 @@ import {
   Wrench, 
   Calendar, 
   MapPin, 
-  Tag, 
-  CheckCircle2, 
-  AlertTriangle,
-  XCircle,
-  PlusCircle
+  Tag
 } from 'lucide-react';
+
+const getStoredUser = () => {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const rawUser = localStorage.getItem('user');
+    return rawUser ? JSON.parse(rawUser) : {};
+  } catch (error) {
+    console.warn('Gagal membaca data user dari localStorage:', error);
+    return {};
+  }
+};
 
 export default function PegawaiAset() {
   const [asetList, setAsetList] = useState([]);
@@ -33,29 +41,37 @@ export default function PegawaiAset() {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  // Ambil data user dari localStorage
-  const user = JSON.parse(localStorage.getItem('user')) || {};
+  const user = useMemo(() => getStoredUser(), []);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchDataAsetPegawai();
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchDataAsetPegawai = async () => {
+  const fetchDataAsetPegawai = useCallback(async () => {
     try {
-      setLoading(true);
-      // Mengambil data aset khusus pegawai yang login
       const res = await API.get(`/pegawai/aset/${user.id}`);
       setAsetList(res.data.data || []);
     } catch (err) {
       console.error('Gagal mengambil data aset pegawai:', err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadData = async () => {
+      if (!user?.id) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      if (!cancelled) setLoading(true);
+      await fetchDataAsetPegawai();
+      if (!cancelled) setLoading(false);
+    };
+
+    loadData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, fetchDataAsetPegawai]);
 
   const handleOpenPerbaikanModal = (aset) => {
     setTargetAset(aset);
@@ -75,7 +91,7 @@ export default function PegawaiAset() {
 
       const res = await API.post('/pegawai/pengajuan', payload);
       if (res.data.success) {
-        alert('Pengajuan perbaikan aset berhasil dikirim!');
+        alert('Pengaduan aset berhasil dikirim dan akan segera diproses oleh admin.');
         setShowModalPerbaikan(false);
         setFormData({ deskripsi_kerusakan: '', tingkat_urgensi: 'sedang' });
         fetchDataAsetPegawai(); // Refresh data
@@ -89,12 +105,16 @@ export default function PegawaiAset() {
 
   // Filter Aset Berdasarkan Input Pencarian & Kategori
   const filteredAset = asetList.filter((item) => {
-    const matchSearch = 
-      item.nama_aset.toLowerCase().includes(search.toLowerCase()) ||
-      item.kode_aset.toLowerCase().includes(search.toLowerCase());
-    
-    const matchKategori = selectedKategori 
-      ? item.kategori_aset?.nama_kategori === selectedKategori 
+    const namaAset = item?.nama_aset || '';
+    const kodeAset = item?.kode_aset || '';
+    const keyword = search.toLowerCase();
+
+    const matchSearch =
+      namaAset.toLowerCase().includes(keyword) ||
+      kodeAset.toLowerCase().includes(keyword);
+
+    const matchKategori = selectedKategori
+      ? item?.kategori_aset?.nama_kategori === selectedKategori
       : true;
 
     return matchSearch && matchKategori;
@@ -227,7 +247,7 @@ export default function PegawaiAset() {
                   onClick={() => handleOpenPerbaikanModal(item)}
                   className="flex-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 text-xs py-2 rounded-xl transition flex items-center justify-center gap-1.5 font-medium"
                 >
-                  <Wrench size={14} /> Laporkan
+                  <Wrench size={14} /> Adukan
                 </button>
               </div>
             </div>
@@ -289,7 +309,7 @@ export default function PegawaiAset() {
                 }}
                 className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition"
               >
-                <Wrench size={14} /> Laporkan Perbaikan
+                <Wrench size={14} /> Ajukan Pengaduan
               </button>
               <button
                 onClick={() => setSelectedAset(null)}
@@ -306,9 +326,10 @@ export default function PegawaiAset() {
       {showModalPerbaikan && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-[#1e293b] border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <h3 className="text-base font-bold text-white border-b border-slate-700 pb-3">
-              Laporkan Kerusakan Aset
-            </h3>
+            <div className="border-b border-slate-700 pb-3">
+              <h3 className="text-base font-bold text-white">Kirim Pengaduan Aset</h3>
+              <p className="text-[11px] text-slate-400 mt-1">Sampaikan kendala perangkat Anda agar admin dapat menindaklanjuti dengan cepat.</p>
+            </div>
 
             <div className="bg-[#0f172a] p-3 rounded-xl border border-slate-800 text-xs">
               <p className="text-slate-400">Aset Dipilih:</p>
@@ -334,7 +355,7 @@ export default function PegawaiAset() {
                 <textarea
                   required
                   rows="3"
-                  placeholder="Ceritakan detail kendala yang dialami pada perangkat..."
+                  placeholder="Ceritakan detail kendala yang dialami pada perangkat dan dampaknya terhadap pekerjaan..."
                   value={formData.deskripsi_kerusakan}
                   onChange={(e) => setFormData({ ...formData, deskripsi_kerusakan: e.target.value })}
                   className="w-full bg-[#0f172a] border border-slate-700 rounded-xl p-3 text-slate-200 focus:outline-none focus:border-blue-500"
@@ -354,7 +375,7 @@ export default function PegawaiAset() {
                   disabled={submitting}
                   className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl font-semibold transition disabled:opacity-50"
                 >
-                  {submitting ? 'Mengirim...' : 'Kirim Pengajuan'}
+                  {submitting ? 'Mengirim...' : 'Kirim Pengaduan'}
                 </button>
               </div>
             </form>
